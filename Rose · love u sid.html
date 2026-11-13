@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rose · love u sid</title>
+<style>
+:root{color-scheme:dark;--bg:#12100f;--card1:#221e1b;--card2:#1c1917;--line:rgba(242,236,228,.12);--ink:#f2ece4;--accent:#ff6b4a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+body{display:flex;flex-direction:column;align-items:center;gap:22px;padding:24px 16px 32px}
+.stage{position:relative;width:min(100%,420px);aspect-ratio:3/4;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 42%,#4a0612 0%,#1a0307 38%,#000 72%);cursor:pointer;touch-action:manipulation}
+svg{width:100%;height:100%;display:block}
+.hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:12px;color:rgba(242,236,228,.45);pointer-events:none}
+.card{width:min(100%,420px);background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:22px;padding:34px 26px 28px;text-align:center}
+.card h1{margin:0 0 6px;font-size:clamp(30px,9vw,42px);font-weight:700;letter-spacing:.5px;color:var(--accent);min-height:1.2em}
+.card h1::after{content:"";display:inline-block;width:2px;height:.9em;margin-left:4px;vertical-align:-.1em;background:var(--accent);animation:blink 1s steps(1) infinite}
+.card p{margin:0 0 20px;font-size:13px;color:rgba(242,236,228,.55)}
+button{font:inherit;font-weight:600;background:var(--accent);color:#2b1710;border:0;border-radius:99px;padding:11px 26px;cursor:pointer}
+button:active{transform:scale(.97)}
+@keyframes blink{50%{opacity:0}}
+.petal-fall{pointer-events:none}
+.mid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) scale(.9);text-align:center;font-size:clamp(28px,9vw,40px);font-weight:700;letter-spacing:1px;color:#fff;text-shadow:0 0 14px #ff1f45,0 0 30px #ff1f45,0 2px 8px rgba(0,0,0,.8);opacity:0;transition:opacity 1.2s ease,transform 1.2s ease;pointer-events:none}
+.mid.show{opacity:1;transform:translateY(-50%) scale(1)}
+</style>
+</head>
+<body>
+<div class="stage" id="stage" aria-label="Interactive rose">
+<svg id="svg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="stemG" x1="0" x2="1"><stop offset="0" stop-color="#1b6b2a"/><stop offset=".5" stop-color="#2fa24a"/><stop offset="1" stop-color="#145220"/></linearGradient>
+<linearGradient id="leafG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3dbb5b"/><stop offset="1" stop-color="#17622b"/></linearGradient>
+<radialGradient id="p1" cx=".5" cy=".9" r=".9"><stop offset="0" stop-color="#7a0818"/><stop offset="1" stop-color="#d81e3c"/></radialGradient>
+<radialGradient id="p2" cx=".5" cy=".9" r=".9"><stop offset="0" stop-color="#8f0b1d"/><stop offset="1" stop-color="#ef3b57"/></radialGradient>
+<radialGradient id="p3" cx=".5" cy=".9" r=".9"><stop offset="0" stop-color="#a50f24"/><stop offset="1" stop-color="#ff5d75"/></radialGradient>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<g id="sway">
+<path id="stem" d="M150 392 C146 330 154 270 150 190" fill="none" stroke="url(#stemG)" stroke-width="7" stroke-linecap="round"/>
+<g id="leafL" transform="translate(149 300) rotate(-25)"><path class="leaf" d="M0 0 C-20 -26 -62 -22 -78 0 C-62 22 -20 26 0 0Z" fill="url(#leafG)"/><path d="M0 0 L-70 0" stroke="#0f4a1d" stroke-width="1.2" opacity=".6"/></g>
+<g id="leafR" transform="translate(151 262) rotate(25)"><path class="leaf" d="M0 0 C20 -26 62 -22 78 0 C62 22 20 26 0 0Z" fill="url(#leafG)"/><path d="M0 0 L70 0" stroke="#0f4a1d" stroke-width="1.2" opacity=".6"/></g>
+<g id="thorns" fill="#1e7a31"><path d="M148 350 l-9 -4 l9 -2z"/><path d="M152 232 l9 -4 l-9 -2z"/></g>
+<ellipse id="halo" cx="150" cy="150" rx="70" ry="70" fill="#ff1f45" opacity="0" filter="url(#glow)"/>
+<g id="rose" transform="translate(150 160)"></g>
+</g>
+<g id="fall"></g>
+</svg>
+<div class="mid" id="mid">love u sid</div>
+<div class="hint">tap the rose ✨</div>
+</div>
+
+<div class="card">
+<h1 id="msg"></h1>
+<p>made with love 🌹</p>
+<button id="replay" type="button">Bloom again</button>
+</div>
+
+<script>
+(function(){
+var NS="http://www.w3.org/2000/svg";
+var svg=document.getElementById("svg"),stage=document.getElementById("stage");
+var rose=document.getElementById("rose"),stem=document.getElementById("stem");
+var leafL=document.getElementById("leafL"),leafR=document.getElementById("leafR");
+var thorns=document.getElementById("thorns"),halo=document.getElementById("halo");
+var sway=document.getElementById("sway"),fall=document.getElementById("fall");
+var msg=document.getElementById("msg");
+var TEXT="love u sid";
+var petalPath="M0 0 C-30 -8 -40 -52 0 -66 C40 -52 30 -8 0 0Z";
+var timers=[],raf=null,t0=0,tx=0;
+
+function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e}
+function later(f,ms){timers.push(setTimeout(f,ms))}
+
+/* build rose petals: layers from back (outer) to front (inner) */
+var petals=[];
+function build(){
+  rose.innerHTML="";petals=[];
+  var layers=[
+    {n:6,r:1.0,fill:"url(#p1)",off:0,tilt:18},
+    {n:5,r:.82,fill:"url(#p2)",off:30,tilt:10},
+    {n:5,r:.64,fill:"url(#p3)",off:55,tilt:4},
+    {n:4,r:.46,fill:"url(#p2)",off:20,tilt:0},
+    {n:3,r:.3,fill:"url(#p1)",off:70,tilt:0}
+  ];
+  layers.forEach(function(L,li){
+    for(var i=0;i<L.n;i++){
+      var ang=L.off+i*(360/L.n);
+      var g=el("g",{transform:"rotate("+ang+")"});
+      var p=el("path",{d:petalPath,fill:L.fill,stroke:"rgba(60,0,10,.45)","stroke-width":".8"});
+      var s=L.r;
+      p.style.transformOrigin="0 0";
+      p.style.transform="scale(0) translateY(0)";
+      p.dataset.s=s;p.dataset.d=li*260+i*70;
+      g.appendChild(p);rose.appendChild(g);petals.push(p);
+    }
+  });
+  var bud=el("circle",{cx:0,cy:-4,r:0,fill:"#5a0512"});bud.id="bud";rose.appendChild(bud);
+}
+build();
+
+function reset(){
+  timers.forEach(clearTimeout);timers=[];
+  fall.innerHTML="";
+  var len=stem.getTotalLength();
+  stem.style.transition="none";stem.style.strokeDasharray=len;stem.style.strokeDashoffset=len;
+  [leafL,leafR].forEach(function(l){l.style.transition="none";l.style.opacity="0";l.style.transformBox="fill-box";});
+  thorns.style.opacity="0";halo.setAttribute("opacity","0");
+  petals.forEach(function(p){p.style.transition="none";p.style.transform="scale(0)"});
+  msg.textContent="";
+  document.getElementById("mid").classList.remove("show");
+}
+
+function typeText(){
+  var i=0;msg.textContent="";
+  (function step(){if(i<=TEXT.length){msg.textContent=TEXT.slice(0,i++);later(step,110)}})();
+}
+
+function play(){
+  reset();
+  void stem.getBoundingClientRect();
+  stem.style.transition="stroke-dashoffset 2.2s cubic-bezier(.4,0,.2,1)";
+  stem.style.strokeDashoffset="0";
+  later(function(){
+    [leafL,leafR].forEach(function(l,i){
+      l.style.transition="opacity .8s ease "+(i*.4)+"s";l.style.opacity="1";
+    });
+    thorns.style.transition="opacity .8s";thorns.style.opacity="1";
+  },900);
+  later(function(){
+    halo.style.transition="opacity 2s";halo.setAttribute("opacity",".35");
+    petals.forEach(function(p){
+      var d=+p.dataset.d,s=+p.dataset.s;
+      p.style.transition="transform 1.1s cubic-bezier(.2,1.3,.4,1) "+d+"ms";
+      p.style.transform="scale("+s+")";
+    });
+  },2100);
+  later(typeText,3300);
+  later(function(){document.getElementById("mid").classList.add("show")},3000);
+}
+
+/* gentle sway + mouse tilt */
+function loop(ts){
+  if(!t0)t0=ts;
+  var t=(ts-t0)/1000;
+  var a=Math.sin(t*1.2)*1.4+tx*3;
+  sway.setAttribute("transform","rotate("+a.toFixed(2)+" 150 392)");
+  raf=requestAnimationFrame(loop);
+}
+raf=requestAnimationFrame(loop);
+stage.addEventListener("pointermove",function(e){
+  var r=stage.getBoundingClientRect();tx=((e.clientX-r.left)/r.width-.5)*2;
+});
+stage.addEventListener("pointerleave",function(){tx=0});
+
+/* click: shower of petals + pulse */
+function shower(){
+  var c=["#d81e3c","#ef3b57","#ff5d75","#a50f24"];
+  for(var i=0;i<16;i++){
+    (function(i){
+      var g=el("g",{class:"petal-fall"});
+      var p=el("path",{d:"M0 0 C-6 -2 -8 -11 0 -14 C8 -11 6 -2 0 0Z",fill:c[i%4]});
+      g.appendChild(p);fall.appendChild(g);
+      var x=150+(Math.random()-.5)*50,y=150,dx=(Math.random()-.5)*160,dur=2200+Math.random()*1800,rot=Math.random()*540-270,sc=.8+Math.random()*.9,s0=performance.now();
+      (function anim(now){
+        var k=(now-s0)/dur;
+        if(k>=1){g.remove();return}
+        var px=x+dx*k+Math.sin(k*9+i)*10,py=y+k*k*240+k*40;
+        g.setAttribute("transform","translate("+px.toFixed(1)+" "+py.toFixed(1)+") rotate("+(rot*k).toFixed(0)+") scale("+sc+")");
+        g.setAttribute("opacity",(1-k*k).toFixed(2));
+        requestAnimationFrame(anim);
+      })(s0);
+    })(i);
+  }
+  rose.style.transition="transform .25s";
+  rose.setAttribute("transform","translate(150 160) scale(1.08)");
+  setTimeout(function(){rose.setAttribute("transform","translate(150 160) scale(1)")},250);
+}
+stage.addEventListener("click",shower);
+document.getElementById("replay").addEventListener("click",play);
+
+play();
+})();
+</script>
+</body>
+</html>
